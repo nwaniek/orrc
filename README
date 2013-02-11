@@ -1,0 +1,17 @@
+orrc - OmniRob Remote Control
+
+
+Data (in dump/ folder):
+	streamdump01 - Results for poti-test for PWM >= 0
+	streamdump02 - Results for poti-test for PWM <= 0
+	streamdump03 - Results for the rate test
+	streamdump04 - Results for the rate test
+	streamdump05 - Results for the rate test
+	streamdump06 - Results for 2 wheels only
+
+	streamdump_mXYZ - X, Y and Z indicate which motors are active.
+	short duration tests (PW 50 - 100)
+
+	streamdump_cNNNN_mXYZ - X, Y, Z as above, NNNN max pulse width 
+
+	streamdump_stdNN - running the poti_std test the NNth time
