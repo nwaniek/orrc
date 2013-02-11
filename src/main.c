@@ -69,10 +69,21 @@ cli (int sockfd) {
 	}
 }
 
-#define MODE_CLI   0
-#define MODE_POTI  1
-#define MODE_RATE  2
-#define MODE_STD   3
+enum MODE {
+	MODE_CLI,
+	MODE_POTI,
+	MODE_RATE,
+	MODE_STD,
+	MODE_COUNT
+};
+
+void (*fn[MODE_COUNT])(int sockfd) = {
+	cli,
+	test_poti,
+	test_rate,
+	test_poti_std
+};
+
 
 int
 main (int argc, char *argv[]) {
@@ -81,7 +92,7 @@ main (int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	int mode = MODE_CLI;
+	enum MODE mode = MODE_CLI;
 	if (argc > 2) {
 		if (!strcmp(argv[2], "cli"))
 			mode = MODE_CLI;
@@ -133,23 +144,8 @@ main (int argc, char *argv[]) {
 	pthread_t readt;
 	pthread_create(&readt, NULL, sock_reader, (void*)&sockfd);
 
-	switch (mode) {
-	case MODE_CLI:
-		cli(sockfd);
-		break;
-	case MODE_POTI:
-		test_poti(sockfd);
-		break;
-	case MODE_RATE:
-		test_rate(sockfd);
-		break;
-	case MODE_STD:
-		test_poti_std(sockfd);
-		break;
-	default:
-		fprintf(stderr, "Unknown mode\n");
-		return EXIT_FAILURE;
-	}
+	// call selection
+	fn[mode](sockfd);
 
 	close(sockfd);
 	// pthread_kill(readt, 0);a

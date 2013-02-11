@@ -2,10 +2,10 @@ TARGET     = orrc
 MAJOR      = 1
 MINOR      = 0.0
 
-CC         = gcc
+CC         = clang
 WARNINGS   = -Wall -Wextra -pedantic
 
-INCLUDES   = -I./src
+INCLUDES   = -Isrc
 LIBS       = -lpthread -lreadline -lm
 
 VERSION    = ${MAJOR}.${MINOR}
@@ -47,12 +47,13 @@ debug: makedirs ${OBJ_DBG}
 ${OBJDIR_DBG}/%.o: ${SRCDIR}/%.$(SRCEXT)
 	@echo ' [CC] '$<
 	@${CC} ${CFLAGS} ${CFLAGS_DBG} -c -o $@ $<
-	@${CC} -MM $< > $(patsubst %.o,%.d,$@)
+	@${CC} ${CFLAGS} ${CFLAGS_DBG} -MM $< > $(patsubst %.o,%.d,$@)
 
 ${OBJDIR_RLS}/%.o: ${SRCDIR}/%.$(SRCEXT)
 	@echo ' [CC] '$<
 	@${CC} ${CFLAGS} ${CFLAGS_RLS} -c -o $@ $<
-	@${CC} -MM $< > $(patsubst $(OBJDIR_RLS)/%,$(OBJDIR_DBG)/%,\
+	@${CC} ${CFLAGS} ${CFLAGS_RLS} \
+		-MM $< > $(patsubst $(OBJDIR_RLS)/%,$(OBJDIR_DBG)/%,\
 			$(patsubst %.o,%.d,$@))
 
 makedirs:

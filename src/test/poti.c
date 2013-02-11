@@ -1,4 +1,4 @@
-#include <test/poti.h>
+#include "poti.h"
 #include <or.h>
 #include <sockutil.h>
 #include <string.h>
