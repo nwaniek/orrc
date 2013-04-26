@@ -5,6 +5,67 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define LENGTH(X) (sizeof X / sizeof X[0])
+
+void
+test_poti2(int sockfd) {
+	or_reset(sockfd);
+	sleep(1);
+
+
+	// leave cycle duty length = 640
+	for (int pw = 200; pw < 500; pw += 5) {
+		char buf[64];
+
+		// 001
+		snprintf(buf, 64, "!S0=%d,1=0,2=0\n", pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+
+		// 010
+		snprintf(buf, 64, "!S0=0,1=%d,2=0\n", pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+
+		// 100
+		snprintf(buf, 64, "!S0=0,1=0,2=%d\n", pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+
+		// 011
+		snprintf(buf, 64, "!S0=%d,1=%d,2=0\n", pw, pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+
+		// 101
+		snprintf(buf, 64, "!S0=%d,1=0,2=%d\n", pw, pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+
+		// 110
+		snprintf(buf, 64, "!S0=0,1=%d,2=%d\n", pw, pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+
+		// 111
+		snprintf(buf, 64, "!S0=%d,1=%d,2=%d\n", pw, pw, pw);
+		printf("%s", buf);
+		Send(sockfd, buf, strlen(buf), 0);
+		sleep(5);
+	}
+
+	char *stop = "!S1=0,2=0,3=0\n";
+	Send(sockfd, stop, strlen(stop), 0);
+	sleep(1);
+	printf("done\n");
+}
+
 void
 test_poti (int sockfd) {
 	or_reset(sockfd);
@@ -68,7 +129,7 @@ test_poti_std (int sockfd) {
 	Send(sockfd, streaming, strlen(streaming), 0);
 	sleep(1);
 
-	for (int c = 100; c <= 1000; c = c + 10) {
+	for (int c = 500; c <= 1000; c = c + 5) {
 		or_set_cycle_length(sockfd, c);
 
 		// pwm should reflect 100, if c = 640

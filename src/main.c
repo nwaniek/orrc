@@ -63,7 +63,8 @@ cli (int sockfd) {
 	or_reset(sockfd);
 	for (;;) {
 		char *cmd = readline("> ");
-		if (!strcmp(cmd, "exit")) return;
+		if (!strcmp(cmd, "exit"))
+			return;
 		or_send_cmd(sockfd, cmd);
 		free(cmd);
 	}
@@ -72,8 +73,11 @@ cli (int sockfd) {
 enum MODE {
 	MODE_CLI,
 	MODE_POTI,
-	MODE_RATE,
+	MODE_RAT1,
+	MODE_RAT2,
 	MODE_STD,
+	MODE_POTI2,
+	//
 	MODE_COUNT
 };
 
@@ -81,14 +85,16 @@ void (*fn[MODE_COUNT])(int sockfd) = {
 	cli,
 	test_poti,
 	test_rate,
-	test_poti_std
+	test_rate2,
+	test_poti_std,
+	test_poti2
 };
 
 
 int
 main (int argc, char *argv[]) {
 	if (argc < 2) {
-		fprintf(stderr, "usage: orrc <IP:port> [cli/poti/rate]\n");
+		fprintf(stderr, "usage: orrc <IP:port> [cli/pot1/pot2/rat1/rat2]\n");
 		return EXIT_FAILURE;
 	}
 
@@ -96,30 +102,40 @@ main (int argc, char *argv[]) {
 	if (argc > 2) {
 		if (!strcmp(argv[2], "cli"))
 			mode = MODE_CLI;
-		else if (!strcmp(argv[2], "poti"))
+		else if (!strcmp(argv[2], "pot1"))
 			mode = MODE_POTI;
-		else if (!strcmp(argv[2], "rate"))
-			mode = MODE_RATE;
+		else if (!strcmp(argv[2], "rat1"))
+			mode = MODE_RAT1;
+		else if (!strcmp(argv[2], "rat2"))
+			mode = MODE_RAT2;
 		else if (!strcmp(argv[2], "std"))
 			mode = MODE_STD;
+		else if (!strcmp(argv[2], "pot2"))
+			mode = MODE_POTI2;
 		else {
 			fprintf(stderr, "Unknown mode\n");
 			return EXIT_FAILURE;
 		}
 	}
 
+
 	char *pch;
 	char ip[16], port[6];
+	char *default_port = "56000";
 	pch = strtok(argv[1], ":");
-	strncpy(ip, pch, 15);
+	strncpy(ip, pch, sizeof(ip) - 1);
 	pch = strtok(NULL, ":");
-	strncpy(port, pch, 5);
+	if (pch)
+		strncpy(port, pch, sizeof(port) - 1);
+	else
+		strncpy(port, default_port, sizeof(port) - 1);
 
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
 		perror("socket");
 		return EXIT_FAILURE;
 	}
+
 
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
@@ -148,7 +164,7 @@ main (int argc, char *argv[]) {
 	fn[mode](sockfd);
 
 	close(sockfd);
-	// pthread_kill(readt, 0);a
+	// pthread_kill(readt, 0);
 	pthread_join(readt, NULL);
 	return EXIT_SUCCESS;
 }
