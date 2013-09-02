@@ -6,7 +6,7 @@ CC         = clang
 WARNINGS   = -Wall -Wextra -pedantic
 
 INCLUDES   = -Isrc
-LIBS       = -lpthread -lreadline -lm
+LIBS       = -lpthread -lreadline -lm -lrt
 
 VERSION    = ${MAJOR}.${MINOR}
 CPPFLAGS   = -DVERSION=\"${VERSION}\"

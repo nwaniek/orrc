@@ -1,8 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
-#include <or.h>
-#include <test/rate.h>
-#include <test/poti.h>
-#include <sockutil.h>
+#include "or.h"
+#include "test/rate.h"
+#include "test/poti.h"
+#include "test/hickup.h"
+#include "sockutil.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,11 +23,10 @@
 #include <pthread.h>
 
 
-
-
 void* sock_reader(void *ptr);
 
 
+#define BUF_SIZE 1024
 void*
 sock_reader (void *ptr) {
 	if (!ptr) return NULL;
@@ -36,10 +39,13 @@ sock_reader (void *ptr) {
 		return NULL;
 	}
 
-	char buf[128];
+	int i;
+	char c;
+	bool needs_timestamp = true;
+	char recv_buf[128];
 	for (;;) {
-		memset(buf, 0, sizeof(buf));
-		int r = recv(sockfd, buf, sizeof(buf)-1, 0);
+		memset(recv_buf, 0, sizeof(recv_buf));
+		int r = recv(sockfd, recv_buf, sizeof(recv_buf)-1, 0);
 		switch (r) {
 		case -1: // error
 			perror("recv");
@@ -50,13 +56,29 @@ sock_reader (void *ptr) {
 			fprintf(f, "orderly shutdown\n");
 			break;
 		default:
-			fprintf(f, "%s", buf);
+			/*
+			 * print character by character in order to
+			 * track newlines. after each newline, the next
+			 * line needs a timestamp.
+			 */
+			i = 0;
+			while ((c = recv_buf[i++]) > 0) {
+				if (needs_timestamp) {
+					fprintf(f, "%ld: ", get_realtime_ns());
+					needs_timestamp = false;
+				}
+
+				fputc(c, f);
+				if (c == '\n')
+					needs_timestamp = true;
+			}
 			fflush(f);
 		}
 	}
 	fclose(f);
 	return NULL;
 }
+
 
 void
 cli (int sockfd) {
@@ -77,6 +99,7 @@ enum MODE {
 	MODE_RAT2,
 	MODE_STD,
 	MODE_POTI2,
+	MODE_HICKUP,
 	//
 	MODE_COUNT
 };
@@ -87,14 +110,15 @@ void (*fn[MODE_COUNT])(int sockfd) = {
 	test_rate,
 	test_rate2,
 	test_poti_std,
-	test_poti2
+	test_poti2,
+	test_hickup
 };
 
 
 int
 main (int argc, char *argv[]) {
 	if (argc < 2) {
-		fprintf(stderr, "usage: orrc <IP:port> [cli/pot1/pot2/rat1/rat2]\n");
+		fprintf(stderr, "usage: orrc <IP:port> [cli/pot1/pot2/rat1/rat2/hickup]\n");
 		return EXIT_FAILURE;
 	}
 
@@ -112,6 +136,8 @@ main (int argc, char *argv[]) {
 			mode = MODE_STD;
 		else if (!strcmp(argv[2], "pot2"))
 			mode = MODE_POTI2;
+		else if (!strcmp(argv[2], "hickup"))
+			mode = MODE_HICKUP;
 		else {
 			fprintf(stderr, "Unknown mode\n");
 			return EXIT_FAILURE;
