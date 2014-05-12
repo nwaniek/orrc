@@ -63,3 +63,6 @@ makedirs:
 clean:
 	@rm -rf ${BUILDDIR}
 	@rm -f ${TARGET}
+
+dist:
+	git archive --format=tar.gz --prefix=$(TARGET)/ -o $(TARGET).tar.gz HEAD
