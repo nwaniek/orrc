@@ -33,7 +33,7 @@ sock_reader (void *ptr) {
 	int sockfd;
 	if ((sockfd = *(int*)ptr) == -1) return NULL;
 
-	FILE *f = fopen("streamdump", "w");
+	FILE *f = fopen("streamdump", "w+");
 	if (!f) {
 		perror("fopen");
 		return NULL;
