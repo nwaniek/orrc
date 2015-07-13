@@ -64,7 +64,7 @@ sock_reader (void *ptr) {
 			i = 0;
 			while ((c = recv_buf[i++]) > 0) {
 				if (needs_timestamp) {
-					fprintf(f, "%ld: ", get_realtime_ns());
+					fprintf(f, "%lu: ", get_realtime_ns());
 					needs_timestamp = false;
 				}
 
