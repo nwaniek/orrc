@@ -23,6 +23,7 @@
 #include <pthread.h>
 
 
+// TODO: include bytestream parsing to remove events from text output
 void* sock_reader(void *ptr);
 
 
